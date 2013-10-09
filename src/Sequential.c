@@ -7,6 +7,7 @@
  ============================================================================
  */
 #include<stdio.h>
+#include <stdlib.h>
 
 double **make2dmatrix(long n);
 void free2dmatrix(double ** M, long n);
@@ -122,7 +123,6 @@ int main(int argc, char *argv[]){
 	free2dmatrix(matrix,matrix_size);
 
 	printf("\n ***************LAST DROP ****************\n\n");
-
 
 	return 0;
 }
