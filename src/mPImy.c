@@ -11,4 +11,8 @@ void main1(int argc,char *argv[])
 
 	printf( " Hello World , I am Process %d of %d \ n " , myid , numprocs);
 	MPI_Finalize();
+
+
+
+
 }
