@@ -30,7 +30,7 @@ void decomposeSerial(double **A, long n)
 	}
 }
 
-int checkSerial(double **A, long n)
+int checkVersion1(double **A, long n)
 {
 	long i, j;
 	for (i=0;i<n;i++)
@@ -90,14 +90,12 @@ void decompose(double **A, long size, char algo){
 	}
 }
 
-int check(double **A, long size, char algo){
-	switch(algo){
-	case 's':
-		return checkSerial(A,size);
+int check(double **A, long size, long version){
+	switch(version){
+	case 1:
+		return checkVersion1(A,size);
 		break;
-	case 'o':
-
-	case 'm':
+	case 2:
 
 	default:
 		printf("INVALID ALGO CHARACTER");
@@ -142,7 +140,7 @@ int main(int argc, char *argv[]){
 
 	printmatrix(matrix,matrix_size);
 
-	printf("%s",check(matrix,matrix_size,algo)==1? "\nDECOMPOSE SUCCESSFULL\n":"\nDECOMPOSE FAIL\n");
+	printf("%s",check(matrix,matrix_size,version)==1? "\nDECOMPOSE SUCCESSFULL\n":"\nDECOMPOSE FAIL\n");
 
 	free2dmatrix(matrix,matrix_size);
 
