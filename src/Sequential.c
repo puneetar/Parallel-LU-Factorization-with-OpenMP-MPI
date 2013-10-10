@@ -8,7 +8,8 @@
  */
 #include<stdio.h>
 #include <stdlib.h>
-
+#include <omp.h>
+#include <time.h>
 
 double **make2dmatrix(long n);
 void free2dmatrix(double ** M, long n);
@@ -28,6 +29,28 @@ void decomposeSerial(double **A, long n)
 			for(j=k+1;j<n;j++)
 				A[i][j]=A[i][j] - A[i][k] * A[k][j];
 	}
+}
+
+void decomposeOpenMP(double **A, long n)
+{
+/*	begin
+	int i, j, k, pid;  pid = process id in [0,nprocs-1], assigned
+	int rows, mymin, mymax;  indices of first and last rows assigned
+	rows <- n/nprocs;  assume it divides for simplicity
+	mymin <- pid * rows; mymax <- mymin + rows - 1;
+	for k <- 0 to n-1 do
+		if (mymin <= k <= mymax)  if pivot row is among those assigned to me
+			for j <- k+1 to n-1 do  i scales row k
+				A[k,j] <- A[k,j] / A[k,k];
+		endif
+		BARRIER(bar1, nprocs);  everybody else waits
+		for i <- max(k+1, mymin) to mymax do  a block of rows from me
+			for j <- k+1 to n-1 do  update a row
+				A[i,j] <- A[i,j] - A[i,k] * A[k,j];
+		endfor
+	endfor*/
+
+#pragma
 }
 
 int checkVersion1(double **A, long n)
@@ -128,24 +151,31 @@ int main(int argc, char *argv[]){
 	//	matrix_size=5;
 	//	version=1;
 
-	printf("Algo selected :%c\n",algo);
-	printf("Size of Matrix :%lu \n",matrix_size);
-	printf("Version Number : %lu\n\n",version);
-
 	double **matrix=getMatrix(matrix_size,version);
 
 	printmatrix(matrix,matrix_size);
 
-	decompose(matrix,matrix_size,algo);
+	/**
+	 * Code to Time the LU decompose
+	 */
+	clock_t begin, end;
+	double time_spent;
+	begin = clock();
+		decompose(matrix,matrix_size,algo);
+	end = clock();
+	time_spent = ((double)(end - begin)) / CLOCKS_PER_SEC;
 
 	printmatrix(matrix,matrix_size);
 
-	printf("%s",check(matrix,matrix_size,version)==1? "\nDECOMPOSE SUCCESSFULL\n":"\nDECOMPOSE FAIL\n");
+	printf("\n**********************************\n\n");
+	printf("Algo selected :%c\n",algo);
+	printf("Size of Matrix :%lu \n",matrix_size);
+	printf("Version Number : %lu\n",version);
+	printf("%s",check(matrix,matrix_size,version)==1? "DECOMPOSE SUCCESSFULL\n":"DECOMPOSE FAIL\n");
+	printf("DECOMPOSE TIME TAKEN : %f seconds\n",time_spent);
+	printf("\n**********************************\n\n");
 
 	free2dmatrix(matrix,matrix_size);
-
-	printf("\n ***************LAST DROP ****************\n\n");
-
 	return 0;
 }
 
