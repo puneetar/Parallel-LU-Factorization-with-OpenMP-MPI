@@ -9,13 +9,15 @@
 #include<stdio.h>
 #include <stdlib.h>
 
+
 double **make2dmatrix(long n);
 void free2dmatrix(double ** M, long n);
 void printmatrix(double **A, long n);
 
 long matrix_size,version;
+char algo;
 
-void decompose(double **A, long n)
+void decomposeSerial(double **A, long n)
 {
 	long i,j,k;
 	for(k=0;k<n;k++){
@@ -28,14 +30,17 @@ void decompose(double **A, long n)
 	}
 }
 
-double **make2dmatrix(long n)
+int checkSerial(double **A, long n)
 {
-	long i;
-	double **m;
-	m = (double**)malloc(n*sizeof(double*));
+	long i, j;
 	for (i=0;i<n;i++)
-		m[i] = (double*)malloc(n*sizeof(double));
-	return m;
+	{
+		for (j=0;j<n;j++)
+			if(A[i][j]!=1){
+				return 0;
+			}
+	}
+	return 1;
 }
 
 void initializeVersion1(double **A, long n)
@@ -52,18 +57,115 @@ void initializeVersion1(double **A, long n)
 	}
 }
 
-void free2dmatrix(double ** M, long n)
+
+
+double **getMatrix(long size,long version)
+{
+	double **m=make2dmatrix(size);
+	switch(version){
+	case 1:
+		initializeVersion1(m,size);
+		break;
+	case 2:
+
+	default:
+		printf("INVALID VERSION NUMBER");
+		break;
+	}
+	return m;
+}
+
+void decompose(double **A, long size, char algo){
+	switch(algo){
+	case 's':
+		decomposeSerial(A,size);
+		break;
+	case 'o':
+
+	case 'm':
+
+	default:
+		printf("INVALID ALGO CHARACTER");
+		break;
+	}
+}
+
+int check(double **A, long size, char algo){
+	switch(algo){
+	case 's':
+		return checkSerial(A,size);
+		break;
+	case 'o':
+
+	case 'm':
+
+	default:
+		printf("INVALID ALGO CHARACTER");
+		return -1;
+		break;
+	}
+}
+
+int main(int argc, char *argv[]){
+
+	if(argc !=4){
+		printf("Enter the size of matrix (N x N) where N = ");
+		scanf("%lu",&matrix_size);
+
+		printf("Enter the version number V = ");
+		scanf("%lu",&version);
+
+		printf("Enter the algo to run Squential(s) OR OpenMP(o) OR MPI(m) = ");
+		scanf("%c",&algo);
+	}
+	else{
+		//		char data[] = "1 1000\n";
+		//		matrix_size=strtol(argv[1], argv[1], 10);
+		//		version=	strtol(data, argv[2], 10);
+		algo=(char)*argv[1];
+		matrix_size=atol(argv[2]);
+		version=atol(argv[3]);
+	}
+
+	//	matrix_size=5;
+	//	version=1;
+
+	printf("Algo selected :%c\n",algo);
+	printf("Size of Matrix :%lu \n",matrix_size);
+	printf("Version Number : %lu\n\n",version);
+
+	double **matrix=getMatrix(matrix_size,version);
+
+	printmatrix(matrix,matrix_size);
+
+	decompose(matrix,matrix_size,algo);
+
+	printmatrix(matrix,matrix_size);
+
+	printf("%s",check(matrix,matrix_size,algo)==1? "\nDECOMPOSE SUCCESSFULL\n":"\nDECOMPOSE FAIL\n");
+
+	free2dmatrix(matrix,matrix_size);
+
+	printf("\n ***************LAST DROP ****************\n\n");
+
+	return 0;
+}
+
+
+double **make2dmatrix(long n)
 {
 	long i;
-	if (!M) return;
-	for(i=0;i<n;i++)
-		free(M[i]);
-	free(M);
+	double **m;
+	m = (double**)malloc(n*sizeof(double*));
+	for (i=0;i<n;i++)
+		m[i] = (double*)malloc(n*sizeof(double));
+	return m;
 }
 
 // only works for dynamic arrays:
 void printmatrix(double **A, long n)
 {
+	printf("\n *************** MATRIX ****************\n\n");
 	long i, j;
 	for (i=0;i<n;i++)
 	{
@@ -73,56 +175,11 @@ void printmatrix(double **A, long n)
 	}
 }
 
-double **get2dmatrix(long size,long version)
+void free2dmatrix(double ** M, long n)
 {
-	double **m=make2dmatrix(size);
-	switch(version){
-	case 1:
-		initializeVersion1(m,size);
-		break;
-	case 2:
-		break;
-	default:
-		printf("INVALID VERSION NUMBER");
-		break;
-	}
-	return m;
-}
-
-int main(int argc, char *argv[]){
-
-	if(argc !=3){
-		printf("Enter the size of matrix (N x N) where N = ");
-		scanf("%lu",&matrix_size);
-
-		printf("Enter the version number V = ");
-		scanf("%lu",&version);
-	}
-	else{
-		char data[] = "1 1000\n";
-		matrix_size=strtol(argv[1], argv[1], 10);
-		version=	strtol(data, argv[2], 10);
-	}
-
-	//	matrix_size=5;
-	//	version=1;
-
-	printf("Size of Matrix :%lu \n",matrix_size);
-	printf("Version Number : %lu\n\n",version);
-
-	double **matrix=get2dmatrix(matrix_size,version);
-
-	printf("\n ***************ORIGINAL MATRIX ****************\n\n");
-	printmatrix(matrix,matrix_size);
-
-	decompose(matrix,matrix_size);
-
-	printf("\n ***************AFTER DECOMPOSE ****************\n\n");
-	printmatrix(matrix,matrix_size);
-
-	free2dmatrix(matrix,matrix_size);
-
-	printf("\n ***************LAST DROP ****************\n\n");
-
-	return 0;
+	long i;
+	if (!M) return;
+	for(i=0;i<n;i++)
+		free(M[i]);
+	free(M);
 }
