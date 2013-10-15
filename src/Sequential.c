@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <time.h>
+//#include <mpi.h>
 
 double **make2dmatrix(long n);
 void free2dmatrix(double ** M, long n);
@@ -17,9 +18,11 @@ void printmatrix(double **A, long n);
 
 long matrix_size,version;
 char algo;
+double **A_master;
 
 void decomposeSerial(double **A, long n)
 {
+	printf("DECOMPOSE SEQUENTIAL CALLED");
 	long i,j,k;
 	for(k=0;k<n;k++){
 		for(j=k+1;j<n;j++)
@@ -31,27 +34,7 @@ void decomposeSerial(double **A, long n)
 	}
 }
 
-void decomposeOpenMP(double **A, long n)
-{
-/*	begin
-	int i, j, k, pid;  pid = process id in [0,nprocs-1], assigned
-	int rows, mymin, mymax;  indices of first and last rows assigned
-	rows <- n/nprocs;  assume it divides for simplicity
-	mymin <- pid * rows; mymax <- mymin + rows - 1;
-	for k <- 0 to n-1 do
-		if (mymin <= k <= mymax)  if pivot row is among those assigned to me
-			for j <- k+1 to n-1 do  i scales row k
-				A[k,j] <- A[k,j] / A[k,k];
-		endif
-		BARRIER(bar1, nprocs);  everybody else waits
-		for i <- max(k+1, mymin) to mymax do  a block of rows from me
-			for j <- k+1 to n-1 do  update a row
-				A[i,j] <- A[i,j] - A[i,k] * A[k,j];
-		endfor
-	endfor*/
 
-#pragma
-}
 
 int checkVersion1(double **A, long n)
 {
@@ -81,6 +64,38 @@ void initializeVersion1(double **A, long n)
 }
 
 
+int checkVersion2(double **A, long n)
+{
+	long i,j;
+	for(i=0;i<n;i++){
+		if(A[i][i]!=1){
+			return 0;
+		}
+		for(j=0;j<n;j++){
+			if(i!=j && A[i][j]!=2){
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+void initializeVersion2(double **A,long n){
+	long i,j, k;
+	for(i=0;i<n;i++){
+		for(j=i;j<n;j++){
+			if(i==j){
+				k=i+1;
+				A[i][j]=4*k-3;
+			}
+			else{
+				A[i][j]=A[i][i]+1;
+				A[j][i]=A[i][i]+1;
+			}
+		}
+	}
+}
+
 
 double **getMatrix(long size,long version)
 {
@@ -90,28 +105,15 @@ double **getMatrix(long size,long version)
 		initializeVersion1(m,size);
 		break;
 	case 2:
-
+		initializeVersion2(m,size);
+		break;
 	default:
 		printf("INVALID VERSION NUMBER");
-		break;
+		exit(0);
 	}
 	return m;
 }
 
-void decompose(double **A, long size, char algo){
-	switch(algo){
-	case 's':
-		decomposeSerial(A,size);
-		break;
-	case 'o':
-
-	case 'm':
-
-	default:
-		printf("INVALID ALGO CHARACTER");
-		break;
-	}
-}
 
 int check(double **A, long size, long version){
 	switch(version){
@@ -119,41 +121,31 @@ int check(double **A, long size, long version){
 		return checkVersion1(A,size);
 		break;
 	case 2:
-
-	default:
-		printf("INVALID ALGO CHARACTER");
-		return -1;
+		return checkVersion2(A,size);
 		break;
+	default:
+		printf("INVALID VERSION CHARACTER IN CHECK");
+		exit(0);
 	}
 }
 
 int main(int argc, char *argv[]){
 
-	if(argc !=4){
+	if(argc !=3){
 		printf("Enter the size of matrix (N x N) where N = ");
 		scanf("%lu",&matrix_size);
 
 		printf("Enter the version number V = ");
 		scanf("%lu",&version);
-
-		printf("Enter the algo to run Squential(s) OR OpenMP(o) OR MPI(m) = ");
-		scanf("%c",&algo);
 	}
 	else{
-		//		char data[] = "1 1000\n";
-		//		matrix_size=strtol(argv[1], argv[1], 10);
-		//		version=	strtol(data, argv[2], 10);
-		algo=(char)*argv[1];
-		matrix_size=atol(argv[2]);
-		version=atol(argv[3]);
+		matrix_size=atol(argv[1]);
+		version=atol(argv[2]);
 	}
-
-	//	matrix_size=5;
-	//	version=1;
 
 	double **matrix=getMatrix(matrix_size,version);
 
-	printmatrix(matrix,matrix_size);
+	//printmatrix(matrix,matrix_size);
 
 	/**
 	 * Code to Time the LU decompose
@@ -161,14 +153,16 @@ int main(int argc, char *argv[]){
 	clock_t begin, end;
 	double time_spent;
 	begin = clock();
-		decompose(matrix,matrix_size,algo);
+
+	decomposeSerial(matrix,matrix_size);
+
 	end = clock();
 	time_spent = ((double)(end - begin)) / CLOCKS_PER_SEC;
 
-	printmatrix(matrix,matrix_size);
+	//printmatrix(matrix,matrix_size);
 
 	printf("\n**********************************\n\n");
-	printf("Algo selected :%c\n",algo);
+	printf("Algo selected :%s\n","Sequential");
 	printf("Size of Matrix :%lu \n",matrix_size);
 	printf("Version Number : %lu\n",version);
 	printf("%s",check(matrix,matrix_size,version)==1? "DECOMPOSE SUCCESSFULL\n":"DECOMPOSE FAIL\n");
