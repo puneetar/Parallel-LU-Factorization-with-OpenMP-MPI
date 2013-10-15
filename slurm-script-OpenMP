@@ -1,13 +1,13 @@
 #!/bin/sh
 #SBATCH --partition=general-compute
-#SBATCH --time=00:15:00
+#SBATCH --time=05:00:00
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=8
 #SBATCH --mem=24000
 # Memory per node specification is in MB. It is optional. 
 # The default limit is 3GB per core.
-#SBATCH --job-name="hello_test"
-#SBATCH --output=test-srun.out
+#SBATCH --job-name="OpenMP"
+#SBATCH --output=OpenMP.output
 #SBATCH --mail-user=puneetar@buffalo.edu
 #SBATCH --mail-type=ALL
 ##SBATCH --requeue
@@ -28,9 +28,9 @@ module list
 ulimit -s unlimited
 #
 
-echo "Launch helloworld with srun"
+echo "Launch OpenMP with srun"
 export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
-srun ./helloworld
+srun ./OpenMP.out >> OpenMP.output.my
 #
 echo "All Done!"
 

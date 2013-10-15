@@ -97,10 +97,10 @@ void decomposeMPI(double **A_local,long n,int argc, char *argv[])
 
 	if (pid == nprocs-1){
 		printf("\n*****************FINAL *****************\n\n");
-		if(nprocs>1)
-			printmatrix(A_master,n);
-		else
-			printmatrix(A_local,n);
+	//	if(nprocs>1)
+	//		printmatrix(A_master,n);
+	//	else
+	//		printmatrix(A_local,n);
 		printf("\n*******************FINAL***************\n\n");
 		printf("\n**********************************\n\n");
 		printf("Algo selected :%s\n","MPI");
