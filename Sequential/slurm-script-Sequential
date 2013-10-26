@@ -1,0 +1,36 @@
+#!/bin/sh
+#SBATCH --partition=general-compute
+#SBATCH --time=05:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=24000
+# Memory per node specification is in MB. It is optional. 
+# The default limit is 3GB per core.
+#SBATCH --job-name="Sequntial"
+#SBATCH --output=Sequential.output_6
+#SBATCH --mail-user=puneetar@buffalo.edu
+#SBATCH --mail-type=ALL
+##SBATCH --requeue
+#Specifies that the job will be requeued after a node failure.
+#The default is that the job will not be requeued.
+
+echo "SLURM_JOBID="$SLURM_JOBID
+echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
+echo "SLURM_NNODES"=$SLURM_NNODES
+echo "SLURMTMPDIR="$SLURMTMPDIR
+
+cd $SLURM_SUBMIT_DIR
+echo "working directory = "$SLURM_SUBMIT_DIR
+
+module load intel/13.1
+module load intel-mpi/4.1.1
+module list
+ulimit -s unlimited
+#
+
+echo "Launch Sequential with srun"
+export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+srun ./Sequential.out 1000000 1 >> Sequential.output.my_6
+#
+echo "All Done!"
+
